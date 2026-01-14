@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: habanalabs-feature-discovery
+  annotations:
+    kubernetes.io/description: "Features discovery for Habanalabs devices and servers."
+    app.kubernetes.io/name: habanalabs-feature-discovery
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: habanalabs-feature-discovery
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: habanalabs-feature-discovery
+    spec:
+      serviceAccountName: habanalabs-feature-discovery-sa
+      containers:
+        - image: hfd-image
+          name: habanalabs-feature-discovery
+          command:
+          - /app/hfd
+          volumeMounts:
+            - name: output-dir
+              mountPath: "/etc/kubernetes/node-feature-discovery/features.d/"
+            - name: os-release
+              mountPath: "/host/usr/lib/os-release"
+              type: FileOrCreate
+              readOnly: true
+            - name: host-os-release
+              mountPath: "/host/etc/os-release"
+              readOnly: true
+            - name: host-sys
+              mountPath: "/host/sys"
+              readOnly: true
+            - name: host-usr-lib
+              mountPath: "/host/usr/lib"
+              readOnly: true
+            - name: host-lib
+              mountPath: "/host/lib"
+              readOnly: true
+          securityContext:
+            allowPrivilegeEscalation: false
+          env:
+          - name: KUBERNETES_NODENAME
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
+          - name: HFD_ROOT_PREFIX
+            value: /host
+      volumes:
+        - name: output-dir
+          hostPath:
+            path: "/etc/kubernetes/node-feature-discovery/features.d"
+        - name: os-release
+          hostPath:
+            path: "/usr/lib/os-release"
+        - name: host-os-release
+          hostPath:
+            path: "/etc/os-release"
+        - name: host-sys
+          hostPath:
+            path: "/sys"
+        - name: host-usr-lib
+          hostPath:
+            path: "/usr/lib"
+        - name: host-lib
+          hostPath:
+            path: "/lib"
