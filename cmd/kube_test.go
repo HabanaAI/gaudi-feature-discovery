@@ -26,7 +26,7 @@ func nodeLabelsUpdated(t *testing.T) {
 			Labels: make(map[string]string),
 		},
 	}
-	fclient := corefake.NewSimpleClientset(&emptyNode)
+	fclient := corefake.NewClientset(&emptyNode)
 
 	devID := "1020"
 	labels := map[string]string{
@@ -72,7 +72,7 @@ func nodeLabelsRemoved(t *testing.T) {
 			},
 		},
 	}
-	fclient := corefake.NewSimpleClientset(&node1)
+	fclient := corefake.NewClientset(&node1)
 
 	labels := map[string]string{
 		collector.DriverVersionLabel: "",

@@ -173,8 +173,8 @@ func FWVersion() (FWInfo, error) {
 // DeviceName returns the device name as specified in the `device_name` sysfs based on device PCI id.
 func DeviceName(deviceID string) string {
 	gaudi1 := []string{"1000", "1001", "1010", "1011"}
-	gaudi2 := []string{"1020", "1030", "1060", "1061", "1062"}
-	gaudi3 := []string{"1060", "1061", "1062"}
+	gaudi2 := []string{"1020", "1021"}
+	gaudi3 := []string{"1030", "1060", "1061", "1062", "1063"}
 
 	switch {
 	case slices.Contains(gaudi1, deviceID):

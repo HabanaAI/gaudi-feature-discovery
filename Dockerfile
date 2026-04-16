@@ -15,10 +15,24 @@
 # -- Build stage
 ARG HFD_VERSION
 
-FROM golang:1.25.4 AS golang
+FROM golang:1.25.8 AS golang
 FROM gcr.io/distroless/static:nonroot as distroless
 
-
+FROM golang AS workspace
+ARG HTTP_PROXY=""
+ARG HTTPS_PROXY=""
+ARG NO_PROXY=""
+ENV http_proxy=${HTTP_PROXY}
+ENV https_proxy=${HTTPS_PROXY}
+ENV no_proxy=${NO_PROXY}
+ENV HTTP_PROXY=${HTTP_PROXY}
+ENV HTTPS_PROXY=${HTTPS_PROXY}
+ENV NO_PROXY=${NO_PROXY}
+ARG REMOTE_USER=user-name-goes-here
+ARG REMOTE_UID=1000
+ARG REMOTE_GID=$REMOTE_UID
+RUN getent group ${REMOTE_GID} > /dev/null 2>&1 || groupadd --gid ${REMOTE_GID} ${REMOTE_USER}
+RUN useradd --uid $REMOTE_UID --gid $REMOTE_GID -m $REMOTE_USER
 
 FROM golang AS builder
 WORKDIR /workspace
@@ -50,7 +64,7 @@ COPY --from=builder /workspace/hfd /hfd
 COPY --from=builder /workspace/licenses /licenses
 COPY LICENSE /licenses/intel-gaudi-feature-discovery/LICENSE
 USER 65532:65532
-CMD ["/hfd"]
+ENTRYPOINT ["/hfd"]
 
 LABEL org.opencontainers.image.vendor="Intel Corp."
 LABEL org.opencontainers.image.title="Habana Feature Discovery (HFD)"

@@ -3,10 +3,12 @@ MAIN_PACKAGE_PATH := "./cmd/"
 APPLICATION_NAME := habanalabs-feature-discovery
 BINARY_NAME := hfd
 BINARY_VERSION := 1.0.0
+GO_LINT_VERSION := 2.7.2
 
 REGISTRY ?= vault.habana.ai
 IMAGE_TAG ?= 1.0.0
 IMAGE_PATH = $(REGISTRY)/$(APPLICATION_NAME):$(IMAGE_TAG)
+UPDATE_TYPE ?= "patch"
 
 # ==================================================================================== #
 # HELPERS
@@ -42,7 +44,7 @@ audit:
 ## lint: run golangci-lint checks
 lint:
 	docker run --rm -t -v $(shell pwd):/app -w /app \
-		golangci/golangci-lint:v2.2.2 golangci-lint run
+		golangci/golangci-lint:v$(GO_LINT_VERSION) golangci-lint run
 
 static-analysis: lint audit fmt tidy
 
@@ -97,14 +99,23 @@ kustomize:
 # upgrade
 .PHONY: update
 update:
-	go get -u ./...
-
-
+	@if [ "$(UPDATE_TYPE)" = "patch" ]; then \
+		GO_MINOR=$$(awk '/^go / {split($$2, v, "."); print v[1] "." v[2]; exit}' go.mod) && \
+		go get go@$$GO_MINOR && \
+		go get toolchain@go$$GO_MINOR; \
+	else \
+		go get go@latest && \
+		go get toolchain@latest; \
+	fi
+	go get -u ./... && \
+	GO_VERSION=$$(awk '/^go / {print $$2; exit}' go.mod) && \
+		sed -i "s/FROM golang:.* AS golang/FROM golang:$$GO_VERSION AS golang/g" Dockerfile
 
 .PHONY: vet
 vet: ## Run go vet against code.
 	go vet ./...
 
+## Remember to 'export GOTOOLCHAIN=auto' before running this target to use the latest Go toolchain.
 .PHONY: upgrade
 upgrade: update tidy fmt vet
 
