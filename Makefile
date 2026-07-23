@@ -3,7 +3,7 @@ MAIN_PACKAGE_PATH := "./cmd/"
 APPLICATION_NAME := habanalabs-feature-discovery
 BINARY_NAME := hfd
 BINARY_VERSION := 1.0.0
-GO_LINT_VERSION := 2.7.2
+GO_LINT_VERSION := latest
 
 REGISTRY ?= vault.habana.ai
 IMAGE_TAG ?= 1.0.0
@@ -44,7 +44,7 @@ audit:
 ## lint: run golangci-lint checks
 lint:
 	docker run --rm -t -v $(shell pwd):/app -w /app \
-		golangci/golangci-lint:v$(GO_LINT_VERSION) golangci-lint run
+		golangci/golangci-lint:$(GO_LINT_VERSION) golangci-lint run
 
 static-analysis: lint audit fmt tidy
 

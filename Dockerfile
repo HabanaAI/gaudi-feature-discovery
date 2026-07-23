@@ -15,7 +15,7 @@
 # -- Build stage
 ARG HFD_VERSION
 
-FROM golang:1.25.8 AS golang
+FROM golang:1.26.4 AS golang
 FROM gcr.io/distroless/static:nonroot as distroless
 
 FROM golang AS workspace
@@ -42,10 +42,9 @@ RUN go mod download && \
 
 COPY . ./
 ENV GCFLAGS="all=-spectre=all -N -l"
-ENV ASMFLAGS="all=-spectre=all"
 ENV LDFLAGS="all=-s -w"
 ENV GOFLAGS=""
-RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} go build ${GOFLAGS} -trimpath -mod=readonly -gcflags="${GCFLAGS}" -asmflags="${ASMFLAGS}" -ldflags="${LDFLAGS}" -a -o hfd ./cmd/
+RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} go build ${GOFLAGS} -trimpath -mod=readonly -gcflags="${GCFLAGS}" -ldflags="${LDFLAGS}" -a -o hfd ./cmd/
 RUN mkdir licenses && go run github.com/google/go-licenses save ./... --save_path=licenses || true
 
 # Verify binary build specs with checksec

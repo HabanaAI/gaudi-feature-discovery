@@ -50,7 +50,7 @@ func main() {
 	slog.Info("Started HFD")
 	err := run(flag.CommandLine, os.Args[1:])
 	if err != nil {
-		slog.Error(err.Error())
+		slog.Error("error", "err", err)
 		os.Exit(1)
 	}
 
@@ -107,11 +107,11 @@ L:
 		case <-ticker.C:
 			if conf.NFDEnabled {
 				if err := createNFDLocalFile(labels, conf.OutputFilePath); err != nil {
-					slog.Error(err.Error())
+					slog.Error("creating NFD local file", "error", err)
 				}
 			} else {
 				if err := updateNodeLabels(ctx, kclient, nodeName, labels); err != nil {
-					slog.Error(err.Error())
+					slog.Error("updating node labels", "error", err)
 				}
 			}
 			slog.Info("Cycle completed", "next_cycle", conf.SleepInterval)
@@ -191,7 +191,7 @@ func writeFileAtomically(outputFile string, contents []byte, perm os.FileMode) e
 func removeOutputFile(path string) error {
 	absFilePath, err := filepath.Abs(path)
 	if err != nil {
-		return fmt.Errorf("failed to retrieve absolute path of output file: %v", err)
+		return fmt.Errorf("failed to retrieve absolute path of output file: %w", err)
 	}
 
 	absDirPath := filepath.Dir(absFilePath)

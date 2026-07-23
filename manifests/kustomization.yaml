@@ -9,5 +9,5 @@ namespace: default
 
 images:
 - name: hfd-image
-  newName: artifactory-kfs.habana-labs.com/k8s-infra-docker-dev/github/habanalabs-feature-discovery
+  newName: artifactory-kfs.iil.labsad.intel.com/k8s-infra-docker-dev/github/habanalabs-feature-discovery
   newTag: 1.0.0
