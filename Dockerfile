@@ -15,8 +15,9 @@
 # -- Build stage
 ARG HFD_VERSION
 
-FROM golang:1.26.4 AS golang
-FROM gcr.io/distroless/static:nonroot as distroless
+FROM golang:1.26.7 AS golang
+FROM gcr.io/distroless/static:nonroot AS distroless
+FROM registry.access.redhat.com/ubi9/ubi-micro:latest AS ubi9-base
 
 FROM golang AS workspace
 ARG HTTP_PROXY=""
@@ -54,8 +55,7 @@ RUN apt-get update -y && apt-get --no-install-recommends -y install file && \
     chmod +x checksec && \
     ./checksec --file=/workspace/hfd --output=csv | grep -q "${CHECKSEC_REF}"
 
-# -- Deployment image
-FROM distroless as production
+FROM ubi9-base AS ubi9
 ARG HFD_VERSION=""
 ARG BUILD_DATE=""
 WORKDIR /
@@ -65,10 +65,31 @@ COPY LICENSE /licenses/intel-gaudi-feature-discovery/LICENSE
 USER 65532:65532
 ENTRYPOINT ["/hfd"]
 
-LABEL org.opencontainers.image.vendor="Intel Corp."
-LABEL org.opencontainers.image.title="Habana Feature Discovery (HFD)"
-LABEL org.opencontainers.image.description="Habana Feature Discovery (HFD) is a utility that detects Intel Gaudi devices and their features."
-LABEL org.opencontainers.image.version="${HFD_VERSION}"
+LABEL created="${BUILD_DATE}"
+LABEL description="Habana Feature Discovery (HFD) is a utility that detects Intel Gaudi devices and their features."
+LABEL licenses="Apache-2.0"
+LABEL name="Habana Feature Discovery (HFD)"
+LABEL release="${HFD_VERSION}"
+LABEL source=https://github.com/HabanaAI/gaudi-feature-discovery
+LABEL summary="Tool that detects Intel Gaudi devices and their features."
+LABEL vendor="Intel Corp."
+LABEL version="${HFD_VERSION}"
+
+# -- Deployment image
+FROM distroless AS production
+ARG HFD_VERSION=""
+ARG BUILD_DATE=""
+WORKDIR /
+COPY --from=builder /workspace/hfd /hfd
+COPY --from=builder /workspace/licenses /licenses
+COPY LICENSE /licenses/intel-gaudi-feature-discovery/LICENSE
+USER 65532:65532
+ENTRYPOINT ["/hfd"]
+
 LABEL org.opencontainers.image.created="${BUILD_DATE}"
-LABEL org.opencontainers.image.source=https://github.com/HabanaAI/gaudi-feature-discovery
+LABEL org.opencontainers.image.description="Habana Feature Discovery (HFD) is a utility that detects Intel Gaudi devices and their features."
 LABEL org.opencontainers.image.licenses="Apache-2.0"
+LABEL org.opencontainers.image.source=https://github.com/HabanaAI/gaudi-feature-discovery
+LABEL org.opencontainers.image.title="Habana Feature Discovery (HFD)"
+LABEL org.opencontainers.image.vendor="Intel Corp."
+LABEL org.opencontainers.image.version="${HFD_VERSION}"

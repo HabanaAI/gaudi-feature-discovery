@@ -77,20 +77,27 @@ run: build
 # OPERATIONS
 # ==================================================================================== #
 
+docker-build-%: ## Build your project for a specific OS and architecture (e.g., build-linux-arm64)
+	$(eval SUFFIX=$(word 1,$(subst production,,$*)))
+	docker build \
+		--platform linux/amd64 \
+		--build-arg HFD_VERSION="$(BINARY_VERSION)" \
+		--build-arg BUILD_DATE=`date -u +"%Y-%m-%dT%H:%M:%SZ"` \
+		--tag $(IMAGE_PATH)$(SUFFIX) \
+		--target $* \
+		.
+
 ## docker-build: Build the container using docker
 .PHONY: docker-build
-docker-build:
-	docker build \
-	--platform linux/amd64 \
-	--build-arg HFD_VERSION="$(BINARY_VERSION)" \
-	--build-arg BUILD_DATE=`date -u +"%Y-%m-%dT%H:%M:%SZ"` \
-	-t $(IMAGE_PATH) \
-	.
+docker-build: docker-build-production docker-build-ubi9
+
+docker-push-%: ## Push your project for a specific OS and architecture (e.g., push-linux-arm64)
+	$(eval SUFFIX=$(word 1,$(subst production,,$*)))
+	docker push $(IMAGE_PATH)$(SUFFIX)
 
 ## docker-push: push the container to registry
 .PHONY: docker-push
-docker-push:
-	docker push $(IMAGE_PATH)
+docker-push: docker-push-production docker-push-ubi9
 
 .PHONY: kustomize
 kustomize:
